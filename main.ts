@@ -1,7 +1,33 @@
 namespace SpriteKind {
     export const PlayerProjectile = SpriteKind.create()
     export const EnemyProjectile = SpriteKind.create()
+    export const platform = SpriteKind.create()
 }
+controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
+    magic_platform = sprites.create(img`
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+        3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        `, SpriteKind.Food)
+    if (player.overlapsWith(magic_platform)) {
+    	
+    }
+    magic_platform.setPosition(76, 56)
+    magic_platform.follow(player, 100)
+})
 // Стрельба игрока вверх
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     proj = sprites.createProjectileFromSprite(img`
@@ -13,12 +39,35 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 // Функция создания платформ с шансом на бонус
 function createRandomPlatform (x: number, y: number) {
-    let p: Sprite
+    let p: Sprite;
 r = randint(0, 25)
     if (r == 0) {
         // Батут — оранжевый
         p = sprites.create(img`
-            . 7 7 7 7 7 7 7 . 
+            .............8..................
+            ............888.................
+            ...........88888................
+            ..........8888888...............
+            ............888.................
+            .........f..888.................
+            ...fffffff..888.................
+            ..f.....6f..888.................
+            ..f.....6f......................
+            ..f888886f......................
+            ..f888888f8888888.88.8.8........
+            .ffffffffffffffffffffffffffffff.
+            .f4444444444444444444444444444f.
+            .ffffffffffffffffffffffffffffff.
+            ....f444f..............f444f....
+            ....f44f...............f44f.....
+            ....f4f................f4f......
+            ....ff.................ff.......
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
             `, SpriteKind.Food)
         p.data = "trampoline"
     } else if (r == 1) {
@@ -61,7 +110,30 @@ r = randint(0, 25)
     } else if (r == 2) {
         // Ломающаяся платформа — белая пунктирная
         p = sprites.create(img`
-            1 5 . 1 5 . 1 5 . 1 5 . 
+            .....5..........................
+            ....55..........................
+            ....5f..........................
+            .....1111.......................
+            ...eeeee1.......................
+            ....eee.1.......................
+            .....e..1.f4....................
+            ....eee.1f8ff...................
+            ...eeeeef8f57f..................
+            ..ffffffff.f75f.......ffffffff..
+            ..f444444ff.f55f....fff444444f..
+            ..fff444444ffffffffff444444fff..
+            ....fffff44444466444444fffff....
+            ........fff4444664444fff........
+            ..........fffff6ffffff..........
+            ..............f6f...............
+            ..............fff...............
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
             `, SpriteKind.Food)
         p.data = "breakable"
     } else {
@@ -108,6 +180,8 @@ let diff = 0
 let e: Sprite = null
 let r = 0
 let proj: Sprite = null
+let magic_platform: Sprite = null
+let score = 0
 let player: Sprite = null
 scene.setBackgroundImage(img`
     ................................................................................................................................................................
@@ -478,22 +552,20 @@ let startPlatform = sprites.create(img`
 startPlatform.setPosition(80, 120)
 // Игрок
 player = sprites.create(img`
-    . f f f f f . 
-    f f f f f f f 
-    f f f f f f f 
-    f f f f f f f 
-    f f f f f f f 
-    f f f f f f f 
-    f f f f f f f 
-    . f f f f f . 
+    . f f f f f f . 
+    f f f f f f f f 
+    f f f f f f f f 
+    f f f f f f f f 
+    f f f f f f f f 
+    f f f f f f f f 
+    f f f f f f f f 
+    . f f f f f f . 
     `, SpriteKind.Player)
 player.setPosition(80, 100)
 player.ay = 350
 controller.moveSprite(player, 100, 0)
 scene.cameraFollowSprite(player)
 scene.setBackgroundColor(9)
-// Инициализация
-let score = 0
 info.setScore(score)
 lives = 3
 info.setLife(lives)
@@ -501,14 +573,15 @@ info.setLife(lives)
 for (let i = 0; i <= 6; i++) {
     createRandomPlatform(randint(20, 140), i * 20 + 40)
 }
+game.showLongText("", DialogLayout.Bottom)
 // Игровой цикл
 game.onUpdate(function () {
     // Ограничение по бокам
     if (player.x < 8) {
-        player.x = 8
+        player.x = 140
     }
     if (player.x > 152) {
-        player.x = 152
+        player.x = 10
     }
     // Прыжки на платформах
     if (player.vy > 0) {
@@ -530,12 +603,6 @@ game.onUpdate(function () {
                 if (q.data == "breakable") {
                     // исчезает после одного прыжка
                     q.destroy()
-                    animation.runImageAnimation(
-                    q,
-                    assets.animation`breakable`,
-                    200,
-                    true
-                    )
                 }
             }
         }
