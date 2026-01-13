@@ -370,7 +370,7 @@ info.setLife(lives)
 for (let i = 0; i <= 6; i++) {
     createRandomPlatform(randint(20, 140), i * 20 + 40)
 }
-game.showLongText("Sei gegrüßt, Schüler. Du bist in den Goethe-Turm eingedrungen, in dem der Legende nach bis heute seine bislang ungesehenen Werke aufbewahrt werden. Deine Aufgabe ist es, so nah wie möglich an sie heranzukommen.  Steuerung: ← nach links, → nach rechts. A – schießen.", DialogLayout.Bottom)
+game.showLongText("Sei gegrüßt, Schüler. Du bist in den Goethe-Turm ←nach links → nach rechts. A – schießen.", DialogLayout.Full)
 // Игровой цикл
 game.onUpdate(function () {
     // Ограничение по бокам
