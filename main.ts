@@ -3,37 +3,36 @@ namespace SpriteKind {
     export const EnemyProjectile = SpriteKind.create()
     export const platform = SpriteKind.create()
 }
-controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
-    magic_platform = sprites.create(img`
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
-        3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        `, SpriteKind.Food)
-    if (player.overlapsWith(magic_platform)) {
-    	
+function spawnPlatformSafe (y: number) {
+    do {
+        x = randint(20, 140)
+        tries++
+    } while (!canSpawnPlatform(x, y) && tries < 10)
+if (tries < 10) {
+        createRandomPlatform(x, y)
     }
-    magic_platform.setPosition(76, 56)
-    magic_platform.follow(player, 100)
-})
+}
+function canSpawnPlatform (x: number, y: number) {
+    for (let s of sprites.allOfKind(SpriteKind.Food)) {
+        if (Math.abs(s.x - x) < 20 && Math.abs(s.y - y) < 16) {
+            return false
+        }
+    }
+    return true
+}
 // Стрельба игрока вверх
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     proj = sprites.createProjectileFromSprite(img`
-        . 2 . 
-        2 2 2 
-        . 2 . 
+        . f f f f f f . . 
+        f 1 1 1 1 1 1 f . 
+        . f 1 1 1 1 f . . 
+        f 5 1 4 4 1 5 f . 
+        . 5 5 4 4 5 5 . . 
+        f 5 1 1 f 1 5 f . 
+        . f 1 f f 1 f . . 
+        . f 1 1 f 1 f . . 
+        f 1 1 1 f 1 1 f . 
+        . f f f f f f . . 
         `, player, 0, -100)
     proj.setKind(SpriteKind.PlayerProjectile)
 })
@@ -167,10 +166,19 @@ r = randint(0, 25)
 // Функция создания врага сверху
 function spawnEnemy () {
     e = sprites.create(img`
-        . f f f . 
-        f f f f f 
-        f f f f f 
-        . f f f . 
+        . . f f f f f f f . 
+        . f f 3 3 3 3 3 3 f 
+        f 3 f f 3 f 3 3 3 f 
+        f 3 f f f f 3 3 3 f 
+        f 3 f f 3 f 3 3 3 f 
+        f 3 f 3 3 3 3 f 3 f 
+        f 3 f 3 3 3 f f f f 
+        f 3 f 3 3 3 f 3 f f 
+        f 3 1 1 1 1 1 1 1 f 
+        f 3 f f f f f f f f 
+        f 3 1 1 1 1 1 1 1 f 
+        . f 3 3 3 3 3 3 3 f 
+        . . f f f f f f f . 
         `, SpriteKind.Enemy)
     e.setPosition(randint(20, 140), 0)
     e.vy = 10
@@ -180,9 +188,10 @@ let diff = 0
 let e: Sprite = null
 let r = 0
 let proj: Sprite = null
-let magic_platform: Sprite = null
 let score = 0
 let player: Sprite = null
+let tries = 0
+let x = 0
 scene.setBackgroundImage(img`
     fffffffcbccffffffffffcfbddddddddddd111111111111111111111111dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbffcddffffffcfcfffff
     fffffffccffffcffffffbfddddddddd11111111111111111111111111111111ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddfccdbffffffffffffff
@@ -332,41 +341,25 @@ let startPlatform = sprites.create(img`
 startPlatform.setPosition(80, 120)
 // Игрок
 player = sprites.create(img`
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    .........3..............
-    ........33..............
-    ........33..............
-    ........33..............
-    ........3...............
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
-    ........................
+    . . . . f f f f . . . . 
+    . . f f d e e e f f . . 
+    . f f e e d e e e f f . 
+    f f f f c e d e f f f f 
+    f f f c c c e d f f f f 
+    f f f d d d c c e f f f 
+    f 4 c d d d d d d e c f 
+    f c c f f d d f f c c f 
+    f e c d d d d d d c e f 
+    . f e d d b b d d e f . 
+    . f f e 4 4 4 4 e f f . 
+    e d f b 9 9 9 9 b f d e 
+    d d f 9 9 9 9 9 9 f d d 
+    d d f 6 6 6 6 6 6 f d d 
+    . . . f f f f f f . . . 
+    . . . f f . . f f . . . 
     `, SpriteKind.Player)
 player.setPosition(80, 100)
-player.ay = 350
+player.ay = 300
 controller.moveSprite(player, 100, 0)
 scene.cameraFollowSprite(player)
 scene.setBackgroundColor(9)
@@ -377,7 +370,7 @@ info.setLife(lives)
 for (let i = 0; i <= 6; i++) {
     createRandomPlatform(randint(20, 140), i * 20 + 40)
 }
-game.showLongText("", DialogLayout.Bottom)
+game.showLongText("Sei gegrüßt, Schüler. Du bist in den Goethe-Turm eingedrungen, in dem der Legende nach bis heute seine bislang ungesehenen Werke aufbewahrt werden. Deine Aufgabe ist es, so nah wie möglich an sie heranzukommen.  Steuerung: ← nach links, → nach rechts. A – schießen.", DialogLayout.Bottom)
 // Игровой цикл
 game.onUpdate(function () {
     // Ограничение по бокам
@@ -415,10 +408,10 @@ game.onUpdate(function () {
     if (player.y < 60) {
         diff = 60 - player.y
         player.y = 60
-        for (let s of sprites.allOfKind(SpriteKind.Food)) {
-            s.y += diff
-            if (s.y > 160) {
-                s.destroy()
+        for (let t of sprites.allOfKind(SpriteKind.Food)) {
+            t.y += diff
+            if (t.y > 160) {
+                t.destroy()
                 createRandomPlatform(randint(20, 140), 0)
             }
         }
@@ -475,9 +468,12 @@ game.onUpdateInterval(2000, function () {
 game.onUpdateInterval(1500, function () {
     for (let f of sprites.allOfKind(SpriteKind.Enemy)) {
         bullet = sprites.createProjectileFromSprite(img`
-            . 3 . 
-            3 3 3 
-            . 3 . 
+            . 5 5 5 5 . 
+            . 5 . . . . 
+            . 5 5 5 5 . 
+            . 5 . . 5 . 
+            . 5 . . 5 . 
+            . 5 5 5 5 . 
             `, f, 0, 80)
         bullet.setKind(SpriteKind.EnemyProjectile)
     }
